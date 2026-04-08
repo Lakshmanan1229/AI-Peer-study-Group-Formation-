@@ -239,6 +239,7 @@ override.tf.json
 *.tflite
 *.bin
 models/
+!backend/app/models/
 checkpoints/
 *.npz
 *.npy
