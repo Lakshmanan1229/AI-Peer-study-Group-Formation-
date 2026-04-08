@@ -14,7 +14,11 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 class StudentRegister(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(
+        min_length=8,
+        max_length=128,
+        description="Must contain at least one uppercase letter, one lowercase letter, and one digit.",
+    )
     full_name: str = Field(min_length=1, max_length=255)
     department: str = Field(pattern="^(CSE|IT|ECE)$")
     year: int = Field(ge=1, le=4)
