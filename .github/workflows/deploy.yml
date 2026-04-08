@@ -12,6 +12,9 @@ env:
   S3_FRONTEND_BUCKET: smvec-peerstudy-frontend
   CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Run Tests
