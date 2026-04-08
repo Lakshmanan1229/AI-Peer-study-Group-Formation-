@@ -17,7 +17,7 @@ from sqlalchemy import (
     Text,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -59,7 +59,7 @@ class Student(Base):
     __tablename__ = "students"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True,
+        Uuid, primary_key=True, default=uuid.uuid4, index=True,
     )
     email: Mapped[str] = mapped_column(
         String(320), unique=True, nullable=False, index=True,
@@ -82,16 +82,16 @@ class Student(Base):
         server_default="student",
     )
     is_active: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default="true",
+        Boolean, nullable=False, server_default=text("1"),
     )
     goals: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     goal_embedding: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=text("NOW()"),
+        DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"),
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=text("NOW()"),
+        DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"),
     )
 
     # Relationships
@@ -104,6 +104,11 @@ class Student(Base):
     group_memberships: Mapped[list] = relationship(
         "GroupMembership", back_populates="student", cascade="all, delete-orphan",
     )
+
+    @property
+    def availability(self) -> list[AvailabilitySlot]:
+        """Alias for availability_slots used by service layer."""
+        return self.availability_slots
 
     def __repr__(self) -> str:
         return f"<Student {self.email} ({self.department.value})>"
@@ -118,7 +123,7 @@ class SkillAssessment(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     student_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid,
         ForeignKey("students.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -129,10 +134,10 @@ class SkillAssessment(Base):
     grade_points: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=text("NOW()"),
+        DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"),
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=text("NOW()"),
+        DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"),
     )
 
     # Relationships
@@ -151,7 +156,7 @@ class AvailabilitySlot(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     student_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid,
         ForeignKey("students.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -162,7 +167,7 @@ class AvailabilitySlot(Base):
         nullable=False,
     )
     is_available: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default="false",
+        Boolean, nullable=False, server_default=text("0"),
     )
 
     # Relationships

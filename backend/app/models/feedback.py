@@ -13,7 +13,7 @@ from sqlalchemy import (
     Text,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -23,28 +23,28 @@ class PeerFeedback(Base):
     __tablename__ = "peer_feedbacks"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True,
+        Uuid, primary_key=True, default=uuid.uuid4, index=True,
     )
     reviewer_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid,
         ForeignKey("students.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
     reviewee_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid,
         ForeignKey("students.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
     group_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid,
         ForeignKey("study_groups.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
     session_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid,
         ForeignKey("group_sessions.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
@@ -53,11 +53,11 @@ class PeerFeedback(Base):
     helpfulness_score: Mapped[int] = mapped_column(Integer, nullable=False)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_anonymous: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default="false",
+        Boolean, nullable=False, server_default=text("0"),
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=text("NOW()"),
+        DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"),
     )
 
     def __repr__(self) -> str:

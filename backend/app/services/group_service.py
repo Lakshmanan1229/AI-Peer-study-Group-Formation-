@@ -63,7 +63,7 @@ async def run_group_formation_pipeline(db: AsyncSession) -> Dict[str, Any]:
         .where(Student.is_active)
         .options(
             selectinload(Student.skills),
-            selectinload(Student.availability),
+            selectinload(Student.availability_slots),
         )
     )
     students: List[Student] = list(result.scalars().all())
@@ -74,8 +74,26 @@ async def run_group_formation_pipeline(db: AsyncSession) -> Dict[str, Any]:
     # 2. Build student data dicts for ML pipeline
     students_data: List[Dict[str, Any]] = []
     for student in students:
+        skills_list = [
+            {
+                "subject": skill.subject,
+                "self_rating": skill.self_rating,
+                "peer_rating": skill.peer_rating,
+                "grade_points": skill.grade_points,
+            }
+            for skill in student.skills
+        ]
+        avail_list = [
+            {
+                "day_of_week": slot.day_of_week,
+                "slot": slot.slot.value if hasattr(slot.slot, "value") else str(slot.slot),
+                "is_available": slot.is_available,
+            }
+            for slot in student.availability
+        ]
         students_data.append(
             {
+                "id": str(student.id),
                 "student_id": str(student.id),
                 "department": (
                     student.department.value
@@ -89,18 +107,13 @@ async def run_group_formation_pipeline(db: AsyncSession) -> Dict[str, Any]:
                     if hasattr(student.learning_pace, "value")
                     else str(student.learning_pace)
                 ),
-                "subjects": {
-                    skill.subject: skill.self_rating for skill in student.skills
-                },
-                "availability": {
-                    (slot.day_of_week, slot.slot.value): slot.is_available
-                    for slot in student.availability
-                },
+                "skills": skills_list,
+                "availability": avail_list,
             }
         )
 
     # 3 & 4. Feature matrix → cluster → form groups
-    feature_matrix = build_feature_matrix(students_data)
+    feature_matrix, _student_ids, _feature_names = build_feature_matrix(students_data)
     cluster_labels = cluster_students(feature_matrix)
     groups_of_ids: List[List[str]] = form_groups(
         students_data, cluster_labels, feature_matrix
@@ -193,7 +206,7 @@ async def get_student_group(
             selectinload(GroupMembership.group)
             .selectinload(StudyGroup.memberships)
             .selectinload(GroupMembership.student)
-            .selectinload(Student.availability),
+            .selectinload(Student.availability_slots),
         )
     )
     membership = result.scalar_one_or_none()
@@ -271,7 +284,7 @@ async def calculate_health_score(
             .selectinload(Student.skills),
             selectinload(StudyGroup.memberships)
             .selectinload(GroupMembership.student)
-            .selectinload(Student.availability),
+            .selectinload(Student.availability_slots),
             selectinload(StudyGroup.sessions),
         )
     )
