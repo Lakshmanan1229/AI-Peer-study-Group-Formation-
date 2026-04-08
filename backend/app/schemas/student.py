@@ -21,6 +21,18 @@ class StudentRegister(BaseModel):
     cgpa: float = Field(ge=0.0, le=10.0)
     learning_pace: str = Field(pattern="^(slow|moderate|fast)$")
 
+    @field_validator("password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        """Require at least one uppercase, one lowercase, and one digit."""
+        if not any(c.isupper() for c in v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not any(c.islower() for c in v):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least one digit")
+        return v
+
 
 class StudentLogin(BaseModel):
     email: EmailStr

@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.middleware.rate_limit import limiter
 from app.schemas.student import StudentLogin, StudentRegister, TokenResponse
 from app.services import auth_service
 
@@ -16,7 +15,9 @@ class _RefreshRequest(BaseModel):
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 async def register(
+    request: Request,
     student_data: StudentRegister,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
@@ -25,7 +26,9 @@ async def register(
 
 
 @router.post("/login", response_model=TokenResponse)
+@limiter.limit("10/minute")
 async def login(
+    request: Request,
     credentials: StudentLogin,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
@@ -36,7 +39,9 @@ async def login(
 
 
 @router.post("/refresh", response_model=TokenResponse)
+@limiter.limit("20/minute")
 async def refresh(
+    request: Request,
     body: _RefreshRequest,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:

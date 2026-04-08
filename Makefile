@@ -7,7 +7,8 @@
 .PHONY: help dev install test \
         docker-up docker-down \
         migrate seed lint \
-        frontend-install frontend-dev frontend-build
+        frontend-install frontend-dev frontend-build \
+        openapi
 
 # Default Python / Uvicorn settings (override on the command line as needed)
 APP          := app.main:app
@@ -99,3 +100,12 @@ frontend-dev:
 ## Build the React SPA for production (outputs to frontend/dist/)
 frontend-build:
 	cd $(FRONTEND_DIR) && npm run build
+
+## Run frontend unit tests
+frontend-test:
+	cd $(FRONTEND_DIR) && npx vitest run
+
+## Export the OpenAPI schema to docs/openapi.json
+openapi:
+	cd backend && python -c "import json; from app.main import app; print(json.dumps(app.openapi(), indent=2))" > ../docs/openapi.json
+	@echo "$(GREEN)✔ Exported OpenAPI spec to docs/openapi.json$(RESET)"
