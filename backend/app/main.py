@@ -52,12 +52,14 @@ def create_app() -> FastAPI:
 
     # ------------------------------------------------------------------
     # CORS
+    # allow_credentials=True requires explicit origins (not "*").
+    # In development we use ALLOWED_ORIGINS from settings (which covers
+    # localhost variants). Wildcard "*" is intentionally avoided because
+    # browsers reject credentialed requests to wildcard origins.
     # ------------------------------------------------------------------
-    origins = settings.ALLOWED_ORIGINS if settings.ENVIRONMENT != "development" else ["*"]
-
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
+        allow_origins=settings.ALLOWED_ORIGINS,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
