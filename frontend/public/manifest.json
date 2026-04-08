@@ -1,0 +1,18 @@
+{
+  "name": "SMVEC Peer Study Groups",
+  "short_name": "PeerStudy",
+  "description": "AI-Powered Peer Study Group Formation for SMVEC students",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
